@@ -9,6 +9,16 @@
 
 (in-suite doplus-suite)
 
+(test test-in-list
+  (is (null (do+ ((for x (in-list ()))) (collect x))))
+  (is (equal '(1 2 3) (do+ ((for x (in-list '(1 2 3)))) (collect x))))
+  (is (equal '(1 2 3) (do+ ((for x (in-list '(1 a 2 b 3 c) :by #'cddr))) (collect x))))
+  (is (equal '((1 2 3) (2 3) (3)) (do+ ((for _ (in-list '(1 2 3) :rest x))) (collect x))))
+  #+test-broken
+  (is (equal '(1 a 2 b 3 c) (do+ ((for (x . y) (in-list '((1 . a) (2 . b) (3 . c)))))
+                              (collect x)
+                              (collect y)))))
+
 (test test-across
   (is (null (do+ ((for x (across #()))) (collect x))))
   (is (equal '(1 2 3) (do+ ((for x (across #(1 2 3)))) (collect x)))))
