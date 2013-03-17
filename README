@@ -1,0 +1,32 @@
+This is DO+ (doplus), the high-level, extensible iteration construct for Common Lisp.
+
+By design, doplus has a reasonably simple implementation, that in particular doesn't
+make use of a code walker, allowing users to freely mix doplus loops with macrolets
+and every other kind of advanced Lisp construct.
+
+--- Installation ---
+
+You can load doplus with ASDF. The system name is :doplus and the .asd file resides
+in the same directory as this README file.
+
+--- Dependencies ---
+
+doplus depends only on parse-declarations and Eos (the latter only if you want
+to run the test suite).
+
+--- Tests ---
+
+To run the test suite, load the system :doplus-tests after loading :doplus itself.
+To rerun the test suite after :doplus-tests has been loaded, evaluate the form
+(doplus-tests:run-all-tests).
+
+--- License ---
+
+doplus is distributed under the GPLv3. See the file COPYING for details.
+Please contact the author if you have questions about licensing or if you want to use doplus
+under a different license.
+
+--- Further information ---
+
+The home of doplus is <http://code.google.com/p/tapulli/wiki/doplus>. There you can find
+in-depth documentation, access the code repository and checkout the latest version.
