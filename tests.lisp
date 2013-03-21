@@ -9,6 +9,21 @@
 
 (in-suite doplus-suite)
 
+(test test-collect
+  (is (equal '(5 15 25)
+             (do+ ((for x (from 0 :to 30 :by 5)))
+               (when (oddp x)
+                 (collect x))))))
+
+(test test-destructuring
+  (is (equal '(1 a 2 b 3 c) (do+ ((for (x . y) (in '((1 . a) (2 . b) (3 . c)))))
+                              (collect x)
+                              (collect y))))
+  (is (equal '((1 a nil nil k2 k3) (2 y nil nil k2 k3) (3 c (:k1 a :kk b :k2 c) a c b))
+             (do+ ((for (x &optional (y 'y) &rest z &key k1 (k2 'k2) ((:kk k3) 'k3))
+                     (in '((1 a) (2) (3 c :k1 a :kk b :k2 c)))))
+               (collect (list x y z k1 k2 k3))))))
+
 (test test-in-list
   (is (null (do+ ((for x (in-list ()))) (collect x))))
   (is (equal '(1 2 3) (do+ ((for x (in-list '(1 2 3)))) (collect x))))
@@ -21,12 +36,6 @@
 (test test-across
   (is (null (do+ ((for x (across #()))) (collect x))))
   (is (equal '(1 2 3) (do+ ((for x (across #(1 2 3)))) (collect x)))))
-
-(test test-collect
-  (is (equal '(5 15 25)
-             (do+ ((for x (from 0 :to 30 :by 5)))
-               (when (oddp x)
-                 (collect x))))))
 
 (test test-summing
   (is (equal '(12 7)
