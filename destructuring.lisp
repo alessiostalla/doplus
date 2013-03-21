@@ -16,15 +16,19 @@
 (in-package :doplus)
 
 (defun extract-variables (lambda-list)
-  (remove nil (mapcar
-               (lambda (form)
-                 (cond ((symbolp form)
-                        (unless (find form lambda-list-keywords)
-                          form))
-                       ((symbolp (car form)) ;;&optional/&key (var default)
-                        (car form))
-                       (t (cadar form)))) ;;&key with explicit keyword name ((key var) default)
-               lambda-list)))
+  (flet ((extract-variable (form)
+           (cond ((symbolp form)
+                  (unless (find form lambda-list-keywords)
+                    form))
+                 ((symbolp (car form)) ;;&optional/&key (var default)
+                  (car form))
+                 (t (cadar form))))) ;;&key with explicit keyword name ((key var) default)
+    (let ((rest (cdr lambda-list)))
+      (remove nil
+              (list* (extract-variable (car lambda-list))
+                     (if (symbolp rest)
+                         (list (extract-variable rest))
+                         (extract-variables rest)))))))
 
 (defun make-destructuring-form (lambda-list expression)
   `(destructuring-bind ,lambda-list ,expression))
