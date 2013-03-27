@@ -79,12 +79,12 @@
   (make-declaration :form thing))
 
 (defclause for (var-or-vars iteration &environment env)
-  "Syntactic sugar. Expands ITERATION with *ITERATION-VARIABLE* bound to VAR. Example: (for x (in '(1 2 3))). For certain iteration macros, VAR can be a lambda-list as well, in which case destructuring is applied. Example: (for (x &optional y) (in-list '((1 2) (3))))"
+  "General iteration clause. Its actual behaviour is controlled by ITERATION, a macro form that FOR expands with *ITERATION-VARIABLE* bound to VAR. Example: in (for x (in '(1 2 3))), IN is a macro that expands into clauses that make use of *ITERATION-VARIABLE*, which is bound to the symbol X in the example. For certain iteration macros, VAR can be a lambda-list as well, in which case destructuring is applied. Example: (for (x &optional y) (in-list '((1 2) (3))))."
   (let ((*iteration-variable* var-or-vars))
     (macroexpand iteration env)))
 
 (defclause generating (var iteration)
-  "Lazy version of FOR. The user must call UPDATE in the body of the DO+ form in order to compute new values for the variable(s). Initialization, instead, is *always* performed automatically."
+  "Lazy version of FOR. The user must call UPDATE or TRY-UPDATE in the body of the DO+ form in order to compute new values for the variable(s). Initialization, instead, is *always* performed eagerly."
   (make-generator :name (if (symbolp var) var (extract-variables var))
                   :clauses `(for ,var ,iteration)))
 
@@ -93,11 +93,12 @@
   `(for ,var ,condition))
 
 (defclause being (form &key (then form))
-  "Assigns the iteration variable a value computed by evaluating FORM on each iteration, including the first. Optionally, the variable can be updated evaluating a differen form (the value of the `then' parameter)."
+  "Assigns to the iteration variable a value computed by evaluating FORM on each iteration, including the first. Optionally, the variable can be updated evaluating a differen form (the value of the `then' parameter). Examples: (for x (being (random))), (for y (being 'quiet :then (if (> x 0.5) 'angry 'quiet)))."
   (make-simple-iteration :init form :step then))
 
 (eval-when (:load-toplevel :compile-toplevel :execute)
   (defun ensure-list (obj)
+    "(if (listp obj) obj (list obj))"
     (if (listp obj) obj (list obj)))
   (defun expand-with-simple-destructuring (form env)
     "Expand `form' in `env' as an iteration form that assigns to `*iteration-variable*' destructuring as by `destructuring-bind'."
@@ -113,7 +114,7 @@
        (mapcar (lambda (var) (make-binding var)) variables)))))
 
 (defclause in (&whole form seq &rest args &key &allow-other-keys &environment env)
-  "Iterates over a sequence. In implementations with extensible sequences (currently ABCL and SBCL), native sequence iterators are used, and all sequence types are supported, not just lists and vectors. In other implementations, an iterator specialized for lists or vectors is used depending on the type of sequence. All `args` are passed down to make-sequence-iterator (see the extensible sequences API paper for details [Rhodes2007]). IN can perform destructuring."
+  "Iterates over a sequence. IN must be used in combination with FOR, GENERATING and similar macros (those that bind *ITERATION-VARIABLE*). In implementations with extensible sequences (currently ABCL and SBCL), native sequence iterators are used, and all sequence types are supported, not just lists and vectors. In other implementations, an iterator specialized for lists or vectors is used depending on the type of sequence. All `args` are passed down to make-sequence-iterator (see the extensible sequences API paper for details [Rhodes2007]). IN can perform destructuring."
   (if (symbolp *iteration-variable*)
       (let ((state (gensym "STATE")) (limit (gensym "LIMIT"))
             (from-end (gensym "FROM-END")) (step (gensym "STEP"))
@@ -131,7 +132,7 @@
 
 (defclause in-list
     (&whole form list &key (by '(function cdr)) (rest (gensym "REST")) &environment env)
-  "Loops over a list. To be used in conjunction with FOR, or more generally with *ITERATION-VARIABLE* bound to a symbol. IN-LIST can perform destructuring."
+  "Like IN, but specialized for lists. Successive lists are obtained by calling the function BY (which by default is #'CDR) on the previous list. REST, if specified, is the variable holding the remaining elements to be processed; REST initially is bound to the entire list, then to successive lists obtained by funcalling BY."
   (if (symbolp *iteration-variable*)
       (list
        (make-simple-iteration :var rest :init list :step `(funcall ,by ,rest))
@@ -141,27 +142,28 @@
 
 (defclause list-tails
     (&whole form list &key (by '(function cdr)) &environment env)
-  "Loops over the successive tails of a list, checking for the end of the list as if by ATOM. To be used in conjunction with FOR, or more generally with *ITERATION-VARIABLE* bound to a symbol. IN-LIST can perform destructuring."
+  "Loops over the successive tails of a list, checking for the end of the list as if by ATOM. Can perform destructuring."
   (if (symbolp *iteration-variable*)
        (make-simple-iteration :init list :step `(funcall ,by ,*iteration-variable*)
                               :precondition `(not (atom ,*iteration-variable*)))
       (expand-with-simple-destructuring form env)))
 
-(defclause in-vector (vector &key (index (gensym "INDEX")))
-  "Loops across a vector."
+(defclause in-vector (vector &key (index (gensym "INDEX")) (start 0) end (by +1))
+  "Loops across a vector. INDEX is bound to the index of the current element in the vector. The vector is traversed starting from index START (0 by default) to index END (the end of the vector if not specified); the index is incremented by BY (1 by default) on each iteration."
   ;;From a contribution by Tamas Papp
   (let ((tmp-var (gensym "VECTOR")))
     `((with (,tmp-var ,vector) (,index 0))
       (declaring (type (integer 0 ,(1- array-total-size-limit)) ,index))
-      (for ,index (from 0 :to (1- (length ,tmp-var)) :by +1))
+      (for ,index (from ,start :to ,(or end `(1- (length ,tmp-var))) :by ,by))
       (for ,*iteration-variable* (being (aref ,tmp-var ,index))))))
 
-(defclause across (vector &key (index (gensym "INDEX")))
+(defclause across (vector &rest args &key index start end by)
   "Synonym for in-vector."
-  `(in-vector ,vector :index ,index))
+  (declare (ignore index start end by))
+  `(in-vector ,vector ,@args))
 
 (defclause hash-entries-of (hash-table)
-  "Iterates over the entries of a hash table."
+  "Iterates over the entries of a hash table. The iteration variables must be specified as (key value), for example: (for (lemma definitions) (hash-entries-of the-english-vocabulary))."
   (unless (and (listp *iteration-variable*) (= 2 (length *iteration-variable*)))
     (error "Invalid variable specification for hash-entry, expected (key value) but got ~S" *iteration-variable*))
   (let ((iterator (gensym "HASH-TABLE-ITERATOR")) (test (gensym "TEST"))

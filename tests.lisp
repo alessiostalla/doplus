@@ -33,9 +33,18 @@
                               (collect x)
                               (collect y)))))
 
-(test test-across
+(test test-in-vector
+  ;;across expands to in-vector
   (is (null (do+ ((for x (across #()))) (collect x))))
-  (is (equal '(1 2 3) (do+ ((for x (across #(1 2 3)))) (collect x)))))
+  (is (equal '(1 2 3) (do+ ((for x (across #(1 2 3)))) (collect x))))
+  (is (null (do+ ((for x (across #(3 2 1) :start 2 :end 0))) (collect x))))
+  (is (equal '(1 2 3) (do+ ((for x (across #(3 2 1) :start 2 :end 0 :by -1))) (collect x))))
+  (is (equal '(1 2 3) (do+ ((for x (across #(0 1 a 2 b 3 c) :by 2 :start 1)))
+                        (collect x))))
+  (is (equal '(1 2 3) (do+ ((for x (across #(0 1 a 2 b 3 c 4) :by 2 :start 1 :end 6)))
+                        (collect x))))
+  (is (equal '(1 2 3 4) (do+ ((for x (across #(0 1 a 2 b 3 c 4) :by 2 :start 1 :end 7)))
+                        (collect x)))))
 
 (test test-summing
   (is (equal '(12 7)
