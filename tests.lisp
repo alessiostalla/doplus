@@ -228,8 +228,8 @@
              (do+ ((for (a b) (in #((1 2) (3 4))))) (collect (cons b a))))))
 
 (test test-package-iterator
-  (is (equal 'LEAST-POSITIVE-NORMALIZED-DOUBLE-FLOAT
-             (do+ ((for s (symbols-in :cl))
+  (is (equal 'truly-the-symbol-with-the-longest-name
+             (do+ ((for s (symbols-in :doplus-tests :internal))
                    (for l (maximizing (length (symbol-name s))
                                       :saving s :in symbol-with-longest-name))
                    (returning symbol-with-longest-name))))))
