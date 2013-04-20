@@ -39,12 +39,31 @@
   (is (equal '(1 2 3) (do+ ((for x (across #(1 2 3)))) (collect x))))
   (is (null (do+ ((for x (across #(3 2 1) :start 2 :end 0))) (collect x))))
   (is (equal '(1 2 3) (do+ ((for x (across #(3 2 1) :start 2 :end 0 :by -1))) (collect x))))
-  (is (equal '(1 2 3) (do+ ((for x (across #(0 1 a 2 b 3 c) :by 2 :start 1)))
-                        (collect x))))
-  (is (equal '(1 2 3) (do+ ((for x (across #(0 1 a 2 b 3 c 4) :by 2 :start 1 :end 6)))
-                        (collect x))))
-  (is (equal '(1 2 3 4) (do+ ((for x (across #(0 1 a 2 b 3 c 4) :by 2 :start 1 :end 7)))
-                        (collect x)))))
+  (is (equal '(1 2 3)
+             (do+ ((for x (across #(0 1 a 2 b 3 c) :by 2 :start 1)))
+               (collect x))))
+  (is (equal '(1 2 3)
+             (do+ ((for x (across #(0 1 a 2 b 3 c 4) :by 2 :start 1 :end 6)))
+               (collect x))))
+  (is (equal '(1 2 3 4)
+             (do+ ((for x (across #(0 1 a 2 b 3 c 4) :by 2 :start 1 :end 7)))
+               (collect x)))))
+
+(test test-list-tails
+  (is (equal '(1 2 3 4) (do+ ((for x (list-tails '(1 a 2 b 3 c 4 d) :by #'cddr)))
+                          (collect (car x))))))
+
+(test test-hash-entries
+  (let ((ht (make-hash-table)))
+    (setf (gethash 'a ht) 'b)
+    (setf (gethash 3 ht) 4)
+  (is (equal '((a . b) (3 . 4))
+             (sort
+              (do+ ((for (k v) (hash-entries-of ht)))
+                (collect (cons k v)))
+              (lambda (x1 x2)
+                (declare (ignore x2))
+                (symbolp (car x1))))))))
 
 (test test-summing
   (is (equal '(12 7)

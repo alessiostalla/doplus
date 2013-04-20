@@ -23,7 +23,7 @@
   (:import-from :sequence #:make-sequence-iterator)
   (:export
    ;;User-level API
-   #:do+ #:for #:generating #:being #:in #:in-list #:in-vector #:across
+   #:do+ #:for #:generating #:being #:in #:in-list #:in-vector #:across #:list-tails
    #:hash-entries-of #:symbols-in #:from #:to
    #:finding #:with #:initially #:finally #:previous #:stop-when #:returning
    #:counting #:summing-to #:accumulating-to #:collecting-into

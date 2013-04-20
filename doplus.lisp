@@ -144,8 +144,11 @@
     (&whole form list &key (by '(function cdr)) &environment env)
   "Loops over the successive tails of a list, checking for the end of the list as if by ATOM. Can perform destructuring."
   (if (symbolp *iteration-variable*)
-       (make-simple-iteration :init list :step `(funcall ,by ,*iteration-variable*)
-                              :precondition `(not (atom ,*iteration-variable*)))
+      (let ((g (gensym)))
+        (list
+         (make-simple-iteration :var *iteration-variable* :init list :step `(funcall ,by ,*iteration-variable*))
+         (make-simple-iteration :var g :init nil :step nil
+                                :precondition `(not (atom ,*iteration-variable*)))))
       (expand-with-simple-destructuring form env)))
 
 (defclause in-vector (vector &key (index (gensym "INDEX")) (start 0) end (by +1))
