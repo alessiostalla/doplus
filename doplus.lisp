@@ -410,15 +410,22 @@
                         (error "~S is not a known generator" name))))
                 (try-update (name &key (on-error (lambda (obj condition) (declare (ignore condition)) (values obj nil))))
                   (let ((generator (find-generator name ,env))
-                        (block-name (gensym "TRY-UPDATE-BLOCK")))
+                        (block-name (gensym "TRY-UPDATE-BLOCK"))
+                        (error-fn (gensym "ON-ERROR")))
                     (if generator
-                        `(block ,block-name
-                           (handler-bind ((error (lambda (cond) (return-from ,block-name (funcall ,on-error ,name cond)))))
-                             (with-doplus-body ,(car generator)
-                               (macrolet ((terminate (&rest args)
-                                            (declare (ignore args))
-                                            `(return-from ,',block-name (values ,',name nil))))
-                                 ,@(cdr generator) (values ,name t)))))
+                        ;;The following binding is to fix try-update on ECL (tested on 12.12.1).
+                        ;;Using ,on-error directly in the funcall form below results in
+                        ;;wrong values for captured variables in compiled code.
+                        `(let ((,error-fn ,on-error))
+                           (block ,block-name
+                             (handler-bind ((error (lambda (cond)
+                                                     (return-from ,block-name
+                                                       (funcall ,error-fn ,name cond)))))
+                               (with-doplus-body ,(car generator)
+                                 (macrolet ((terminate (&rest args)
+                                              (declare (ignore args))
+                                              `(return-from ,',block-name (values ,',name nil))))
+                                   ,@(cdr generator) (values ,name t))))))
                         (error "~S is not a known generator" name))))
                 (skip (&optional (loop-name ',(doplus-env-loop-name env)))
                   (let ((the-loop (find-loop-in-env loop-name ,env)))

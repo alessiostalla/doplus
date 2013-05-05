@@ -28,3 +28,8 @@
    #-(or abcl sbcl)
    (:file "sequence-iterator")
    (:file "doplus")))
+
+(defmethod perform ((o asdf:test-op) (s (eql (asdf:find-system :doplus))))
+  (asdf:load-system :doplus-tests)
+  (eval (read-from-string "(doplus-tests:run-all-tests)"))
+  t)
