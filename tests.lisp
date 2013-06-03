@@ -247,5 +247,12 @@
                   (collect x :into list)
                   (collect (* 2 x) :into list)))))
 
+(test test-multiple-returns
+  (is (equal '(1 2 3 4 5 6 7)
+             (multiple-value-list
+              (do+ ((returning 1) (returning 2 3)
+                    (returning (values 4 5) 6) (returning 7))
+                (terminate))))))
+
 (defun run-all-tests ()
   (run! 'doplus-suite))

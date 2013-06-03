@@ -262,9 +262,15 @@
   "Synonym for until."
   `(until ,condition))
 
-(defclause returning (form)
-  "Returns <form> as the value of the do+ form when the loop ends. If multiple return clauses are specified, multiple values are returned, in the same order as the corresponding clauses."
-  (make-result :form form))
+(defclause returning (&rest forms)
+  "Returns each form in <forms> as the value of the do+ form when the loop ends. If multiple forms are specified, by one or more RETURNING clauses, multiple values are returned, in the order the corresponding forms appear lexically. If one of the <forms> is (cl:values ...), then each value will be returned as if the values were spelled as direct arguments of the RETURNING form."
+  (let (result-clauses)
+    (dolist (form forms)
+      (if (and (listp form) (eq 'values (car form)))
+          (dolist (form (cdr form))
+            (push (make-result :form form) result-clauses))
+          (push (make-result :form form) result-clauses)))
+    (nreverse result-clauses)))
 
 (defclause initially (&rest forms)
   "Evaluates <form> before the first iteration."
