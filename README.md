@@ -28,5 +28,5 @@ under a different license.
 
 --- Further information ---
 
-The home of doplus is <http://code.google.com/p/tapulli/wiki/doplus>. There you can find
+The home of doplus is <https://github.com/alessiostalla/doplus>. There you can find
 in-depth documentation, access the code repository and checkout the latest version.
