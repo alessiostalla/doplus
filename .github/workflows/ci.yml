@@ -1,0 +1,37 @@
+name: CI
+
+# Github Actions allows for running jobs on a wide variety of events
+on:
+  push: # Commits pushed to Github
+  pull_request: # Pull request is update
+  workflow_dispatch: # Manually dispatched from Github's UI
+
+jobs:
+  test:
+    name: ${{ matrix.lisp }} on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      # Each combination of lisp and os are tested
+      matrix:
+        lisp: [sbcl-bin, ccl-bin]
+        os: [windows-latest, ubuntu-latest, macOS-latest]
+
+    steps:
+      - name: windows specific settings
+        if: matrix.os == 'windows-latest'
+        run: |
+          git config --global core.autocrlf false
+          echo "name=ROSWELL_INSTALL_DIR::$HOME/ros" >> $GITHUB_ENV
+          echo "$HOME/ros/bin" >> $GITHUB_PATH
+      - uses: actions/checkout@v1
+      - name: Install Roswell
+        env:
+          LISP: ${{ matrix.lisp }}
+        shell: bash
+        run: curl -L https://raw.githubusercontent.com/roswell/roswell/master/scripts/install-for-ci.sh | sh
+      - name: Install Test Framework
+        shell: bash
+        run: ros install neil-lindquist/ci-utils
+      - name: Run tests
+        shell: bash
+        run: ~/.roswell/bin/run-fiveam.ros -e t doplus-tests::doplus-suite
