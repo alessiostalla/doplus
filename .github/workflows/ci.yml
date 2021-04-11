@@ -22,7 +22,7 @@ jobs:
         run: |
           sudo add-apt-repository ppa:xapienz/curl34
           sudo apt-get update
-          sudo apt-get install libcurl3
+          sudo apt-get install libcurl4
       - name: Windows specific settings
         if: matrix.os == 'windows-latest'
         run: |
