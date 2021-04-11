@@ -16,6 +16,7 @@
 (defpackage :doplus-tests
   (:use :cl :doplus :fiveam)
   (:shadowing-import-from :doplus #:skip)
+  (:shadow #:run-all-tests)
   (:export #:run-all-tests))
 
 (in-package :doplus-tests)

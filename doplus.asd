@@ -1,4 +1,4 @@
-;;; Copyright (C) 2011-2012 Alessio Stalla
+;;; Copyright (C) 2011-2021 Alessio Stalla
 ;;;
 ;;; This program is free software: you can redistribute it and/or modify
 ;;; it under the terms of the GNU General Public License as published by
@@ -15,6 +15,7 @@
 
 (asdf:defsystem :doplus
   :name "doplus"
+  :version "1.1.0"
   :description "DO+ (doplus) is a high-level, extensible iteration construct for Common Lisp with a reasonably simple implementation, which in particular does not use a code walker."
   :author "Alessio Stalla <alessiostalla@gmail.com>"
   :licence "GPLv3"
