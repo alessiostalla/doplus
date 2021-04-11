@@ -40,4 +40,4 @@ jobs:
         run: ros install neil-lindquist/ci-utils
       - name: Run tests
         shell: bash
-        run: ~/.roswell/bin/run-fiveam.ros -e t doplus-tests::doplus-suite
+        run: roswell/run-fiveam.ros -e t doplus-tests::doplus-suite
