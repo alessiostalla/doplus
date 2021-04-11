@@ -241,7 +241,7 @@
                   (collect (cons b a))))))
 
 (test test-package-iterator
-  (is (equal 'truly-the-symbol-with-the-longest-name
+  (is (equal 'absolutely-truly-the-symbol-with-the-longest-name-in-this-package-even-longer-than-symbols-generated-by-the-test-framework
              (do+ (for s (symbols-in :doplus-tests :internal))
                   (for l (maximizing (length (symbol-name s))
                                      :saving s :in symbol-with-longest-name))
