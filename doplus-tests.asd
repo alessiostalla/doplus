@@ -19,7 +19,7 @@
   :author "Alessio Stalla <alessiostalla@gmail.com>"
   :licence "GPLv3"
   :serial t
-  :depends-on (:doplus :eos)
+  :depends-on (:doplus :fiveam)
   :components
   ((:static-file "doplus-tests.asd")
    (:file "tests")))

@@ -1,4 +1,4 @@
-;;; Copyright (C) 2011-2012 Alessio Stalla
+;;; Copyright (C) 2011-2014 Alessio Stalla
 ;;;
 ;;; This program is free software: you can redistribute it and/or modify
 ;;; it under the terms of the GNU General Public License as published by
@@ -447,25 +447,26 @@
                             `(go ,(doplus-env-terminate-label the-loop))
                             `(return-from ,loop-name ,return-value))
                         (error "~S is not the name of a do+ loop in scope" loop-name))))
-                (do+ ((&rest iter-forms) &body body)
-                  `(do+/internal ,,env ,iter-forms ,@body)))
+                (do+ (&body body)
+                  `(do+/internal ,,env ,@body)))
        ,@body)))
 
-(defmacro do+ ((&rest iter-forms) &body body)
+(defmacro do+ (&body body)
   "High-level, extensible iteration construct. Refer to the manual for syntax and semantics."
-  `(do+/internal nil ,iter-forms ,@body))
+  `(do+/internal nil ,@body))
 
-(defmacro do+/internal (doplus-env iter-forms &body body &environment env)
+(defmacro do+/internal (doplus-env &body body &environment env)
   (let (bindings declarations iterations termination-conditions result-forms generators
         initializations finalizations accumulators (default-collect-var (gensym "COLLECT"))
         prologue epilogue (wrapper #'identity) loop-name
         (loop-label (gensym "LOOP")) (return-label (gensym "RETURN"))
-        (update-label (gensym "UPDATE")) (with-atomic-updates 'with-atomic-updates))
-    (if (and (car iter-forms) (symbolp (car iter-forms)))
-        (setf loop-name (car iter-forms) iter-forms (cdr iter-forms))
+        (update-label (gensym "UPDATE")) (with-atomic-updates 'with-atomic-updates)
+        actual-body)
+    (if (and (car body) (symbolp (car body)))
+        (setf loop-name (car body) body (cdr body))
         (setf loop-name (gensym "DOPLUS")))
     (labels ((process-form (raw-form &optional iterations)
-               (let ((form (macroexpand raw-form env)))
+               (let ((form (ignore-errors (macroexpand raw-form env)))) ;;TODO
                  (cond
                    ((and (listp form) (not (symbolp (car form))))
                     (dolist (x form)
@@ -507,9 +508,9 @@
                       (setf wrapper
                             (lambda (body)
                               (funcall (wrapper-function form) (funcall old-wrapper body))))))
-                   (t (error "Unsupported iteration form: ~S (macroexpands to ~S)" raw-form form))))
+                   (t (push raw-form actual-body))))
                iterations))
-      (setf iterations (process-form (cons `(accumulating-to ,default-collect-var) iter-forms)))
+      (setf iterations (process-form (cons `(accumulating-to ,default-collect-var) body)))
       (when (null result-forms)
         (setf iterations (process-form `(returning ,default-collect-var) iterations))))
     (setf bindings (nreverse (mapcar (lambda (binding) (list (binding-var binding) (binding-default binding)))
@@ -517,9 +518,10 @@
     (setf doplus-env (make-doplus-env
                       :loop-name loop-name :parent doplus-env :accumulators accumulators
                       :generators generators :default-collect-var default-collect-var
-                      :skip-label update-label :terminate-label return-label))
+                      :skip-label update-label :terminate-label return-label)
+          actual-body (nreverse actual-body))
     (multiple-value-bind (body decls)
-        (tcr.parse-declarations-1.0::parse-body body :documentation nil)
+        (tcr.parse-declarations-1.0::parse-body actual-body :documentation nil)
       `(let ,bindings
          ,@(nreverse declarations)
          ,@decls
