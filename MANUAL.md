@@ -211,11 +211,11 @@ additional (returning *var*) clause.
 ### Others
 
 -   **returning** **&rest** *forms* - controls the return value(s) of
-    the entire doplus expression. If you specify multiple forms and/or
+    the entire doplus expression. If we specify multiple forms and/or
     multiple returning clauses, the doplus form will return multiple
-    values, in the order you specified them. Also, **returning** accepts
+    values, in the order we specified them. Also, **returning** accepts
     (**values** \...) forms: in that case, each value will contribute to
-    the values returned by the doplus form, just as if you had spelled
+    the values returned by the doplus form, just as if we had spelled
     them directly in the **returning** form.
 -   **initially** *form*, **finally** *form* - initialization and
     finalization clauses.
@@ -224,11 +224,10 @@ additional (returning *var*) clause.
 
 ## The loop body
 
-A block named `NIL` surrounds the whole iteration form, so you can use
-**return** to terminate the loop returning a value (or zero or many,
-using **values**). Also, declarations in the body are fully supported.
+In the body of the loop, besides clauses and user code to be executed, we can use
+several macros, detailed below, to alter the course of the loop.
 
-The loop body is inserted into a **tagbody** form, so you can use labels
+Also, the loop body is inserted into a **tagbody** form, so we can use labels
 and GOs (though, of course, GOTO is considered harmful!).
 
 ### Collection macros
@@ -287,7 +286,7 @@ established by an outer do+. For example:
 (6 B))
 ```
 
-Also, you can give a name to a loop; if you do that, you\'ll be able to
+Also, we can give a name to a loop; if we do that, we\'ll be able to
 use that name with the **skip** and **terminate** macros to
 skip/terminate that loop, even from nested loops. The name of a loop is
 its first clause, if it is a symbol; or it can be provided by an options
@@ -303,6 +302,10 @@ clause. Example:
     (when (> (+ x k) 5)
       (terminate outer-loop))))
 ```
+
+Also, a block with the same name as the loop name surrounds the whole iteration form, so we can use
+**return** to terminate the loop returning a value (or zero or many,
+using **values**). Also, declarations in the body are fully supported.
 
 ## Iteration in detail
 
@@ -334,13 +337,13 @@ algorithm employed by doplus.
 8.  (**return**) return values are computed and returned.
 
 **Note:** in do+, binding and initialization are two very different
-phases with different semantics. While you can provide a default value
-for a binding, by design this is done in parallel (as by **let**) so you
+phases with different semantics. While we can provide a default value
+for a binding, by design this is done in parallel (as by **let**), so we
 cannot refer to other variables bound in the same loop. Initialization
 is the right phase when to assign an initial value to variables; the
 possibility of giving a default exists only to support type
-declarations, because if you declare a variable to be, say, a fixnum,
-you need to initialize it with a fixnum, not NIL. Also, multiple
+declarations, because if we declare a variable to be, say, a fixnum,
+we need to initialize it with a fixnum, not NIL. Also, multiple
 bindings for the same variable are merged when that makes sense (i.e.
 when there are no conflicting defaults). This allows idioms such as:
 
@@ -350,8 +353,8 @@ when there are no conflicting defaults). This allows idioms such as:
 (for x (in '(1 2 3)))
 ```
 
-to work, while for \... in normally produces a binding with no default
-(making x initially be bound to NIL).
+to work, while `for \... in` normally produces a binding with no default
+(making `x` initially bound to `NIL`).
 
 ### Initialization and stepping
 
@@ -412,7 +415,8 @@ atomic section, without being visible to the other forms, such as those
 computing the return values.
 
 If, for performance reasons or other concerns, you want to turn off
-atomic updates for a certain do+ form, add `(options :atomic-updates nil)` to the clauses of that form.
+atomic updates for a certain do+ form,
+add `(options :atomic-updates nil)` to the clauses of that form.
 
 ## Extending doplus
 
@@ -431,12 +435,12 @@ useful to keep in mind a few tips and tricks.
     dynamic environment where the variable **`*`iteration-variable`*`**
     is bound to the first argument to **for**. Note that
     **`*`iteration-variable`*`** can be a lambda list as well as a
-    symbol; if your macro does not support destructuring, you should
+    symbol; if our macro does not support destructuring, we should
     nevertheless handle the case when **`*`iteration-variable`*`** is a
     lambda list by signalling a meaningful error condition.
 
 -   **Preferred macro style**. Generally, macros can expand into a list
-    of clauses, just like you\'d write them in the head of a do+ form.
+    of clauses, just like we\'d write them in the head of a do+ form.
     For example, a possible implementation of **in-vector** is the
     following:
 
@@ -450,10 +454,10 @@ useful to keep in mind a few tips and tricks.
 ```
 
 Such a style is to be preferred, but there might be cases where
-you\'ll need, or prefer, to use a lower-level API to generate the
+we\'ll need, or prefer, to use a lower-level API to generate the
 appropriate clauses. Look at the symbols whose name starts with
 **make-** (e.g. **make-iteration**) in the **doplus** package. Even if
-you go to that route, you can still use the higher-level API where it
+we go to that route, we can still use the higher-level API where it
 is most convenient, and only plug lower-level calls where strictly
 necessary. Just for the sake of the example, the code above might be
 rewritten as:
@@ -479,8 +483,8 @@ rewritten as:
     Instead, step forms can be associated with a generator and thus
     evaluated only when the user calls **update**.
 
--   **Declarations**. You can instruct doplus to emit declarations for
-    variables you introduce in your own clauses (e.g. to tell the
+-   **Declarations**. We can instruct doplus to emit declarations for
+    variables we introduce in our own clauses (e.g. to tell the
     compiler that a given variable acts as a fixnum index). Just add
     `(declaring some-declaration)` to the list of clauses
-    returned by your macro.
+    returned by our macro.
