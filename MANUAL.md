@@ -3,20 +3,17 @@
 ## Overview
 
 do+ is a high-level, extensible general iteration construct for Common
-Lisp.
+Lisp, like the built-in LOOP macro and the iterate library.
 
-do+, like DO and unlike both LOOP and iterate, distinguishes between a
-\"head\" containing the clauses that control various aspects of the
-iteration (which variables are bound, how they are updated, when the
-loop stops, etc.), and a body, consisting of user code that is executed
-on each iteration and that can make use of certain specific operators
-provided by do+.
+Unlike LOOP, do+ uses plain Lisp forms to control iteration.
 
-In other words, the signature of do+ is
+Unlike iterate, do+ does not employ a code walker.
 
-**do+** (*clause`*`*) **&body** *body*
+The body of a do+ form consists of clauses that control various aspects of the iteration (which variables are bound, how they are updated, when the loop stops, etc.), intermixed with user code that is executed on each iteration and that can make use of certain specific operators provided by do+.
 
-**Clauses are macros**. The names of built-in clauses, used throughout
+While it is good practice to put iteration control clauses at the top, and user code at the bottom, do+ doesn't enforce any structure, like LOOP and iterate.
+
+Note that **clauses are macros**. The names of built-in clauses, used throughout
 this document, are symbols in the **doplus** package; user-defined
 clauses can be defined in other packages as well.
 
@@ -51,18 +48,16 @@ doplus accepts the following types of simple clauses:
 
 **Accumulation** deserves a section by itself. An **accumulation**
 clause defines a strategy for collecting values into a single result
-object; in particular, the strategy consists of: \* a variable, bound
-during the lifetime of the loop; \* a function of two arguments, the
-current value of the variable and the accumulator, which is used to
-calculate the next value of the accumulator.
+object; in particular, the strategy consists of:
+-   a variable, bound during the lifetime of the loop;
+-   a function of two arguments, the current value of the variable and the accumulator, which is used to calculate the next value of the accumulator.
 
 Accumulation clauses are a low-level building block; in user code, they
-are generally created by higher-level clauses, along with: \* an init
-form, the initial value of the accumulation variable; \* a result
-processor, a function to be applied to the accumulator at the end of the
-loop.
+are generally created by higher-level clauses, along with:
+-   an init form, the initial value of the accumulation variable;
+-   a result processor, a function to be applied to the accumulator at the end of the loop.
 
-The canonical example, corresponding to :collect \... :to `x` in LOOP,
+The canonical example, corresponding to `:collect ... :to x` in LOOP,
 is represented by an accumulation clause with `x` as the variable,
 **cons** as the function, a `NIL` init form, and **nreverse** as the
 result processor.
@@ -249,7 +244,7 @@ case a default accumulator is used, and additionally the value of that
 accumulator is returned as the value of the do+ form if no other return
 values are specified. This is to address the common pattern
 `(loop :for x ... :collect (f x))`, that is,
-`(do+ ((for x ...)) (collect (f x)))`. The long form, instead, is:
+`(do+ (for x ...) (collect (f x)))`. The long form, instead, is:
 (**collect**\|**sum** *expr* **:into**\|**:to** *var*), where *var* has
 to be declared as an accumulation in the head of the do+.
 
@@ -280,11 +275,13 @@ loop is able to refer to accumulation variables and generators
 established by an outer do+. For example:
 
 ```lisp
-(do+ ((for x (in (list 1 2 3))) 
-      (accumulating-to result)
-      (stop-when (\> (length result) 10)) 
-      (returning result))
-  (do+ ((for y (in (list \'a \'b)))) 
+(do+
+  (for x (in (list 1 2 3)))
+  (accumulating-to result)
+  (stop-when (\> (length result) 10))
+  (returning result)
+  (do+
+    (for y (in (list \'a \'b)))
     (collect (list x y) :into result)))
 => ((1 A) (1 B) (2 A) (2 B) (3 A) (3 B) (4 A) (4 B) (5 A) (5 B) (6 A)
 (6 B))
@@ -297,11 +294,12 @@ its first clause, if it is a symbol; or it can be provided by an options
 clause. Example:
 
 ```lisp
-(do+ (outer-loop ;;<--this is the name
-                 ;;alternatively, use (options :name outer-loop)
-      (for x (in (list 1 2 3))))
-  (print x)   
-  (do+ ((for k (to 3)))
+(do+ outer-loop ;;<--this is the name
+                ;;alternatively, use (options :name outer-loop)
+  (for x (in (list 1 2 3)))
+  (print x)
+  (do+
+    (for k (to 3))
     (when (> (+ x k) 5)
       (terminate outer-loop))))
 ```
@@ -384,8 +382,8 @@ doplus. Consider the following two iterate forms:
       (finally (return (list x k))))
 => (4 E)
 
-(iter (for x :in-vector #(1 2 3 4)) 
-      (for k :in '(a b c d e)) 
+(iter (for x :in-vector #(1 2 3 4))
+      (for k :in '(a b c d e))
       (finally (return (list x k))))
 => (4 D)
 ```
@@ -395,14 +393,16 @@ return values differ. LOOP behaves the same. This doesn\'t happen with
 doplus; the following two forms return the same value:
 
 ```lisp
-(do+ ((for x (across #(1 2 3 4) :index index))
-      (for k (in '(a b c d e))) 
-      (returning (list x k :index index))))
+(do+
+  (for x (across #(1 2 3 4) :index index))
+  (for k (in '(a b c d e)))
+  (returning (list x k :index index)))
 => (4 D :INDEX 3)
 
-(do+ ((for k (in '(a b c d e))) 
-      (for x (across \#(1 2 3 4) :index index)) 
-      (returning (list x k :index index)))) 
+(do+
+  (for k (in '(a b c d e)))
+  (for x (across \#(1 2 3 4) :index index))
+  (returning (list x k :index index)))
 => (4 D :INDEX 3)
 ```
 
@@ -412,8 +412,7 @@ atomic section, without being visible to the other forms, such as those
 computing the return values.
 
 If, for performance reasons or other concerns, you want to turn off
-atomic updates for a certain do+ form, add
-`(options :atomic-updates nil)` to the clauses of that form.
+atomic updates for a certain do+ form, add `(options :atomic-updates nil)` to the clauses of that form.
 
 ## Extending doplus
 
@@ -446,31 +445,31 @@ useful to keep in mind a few tips and tricks.
   "Loops across a vector."
   (let ((tmp-var (gensym "VECTOR")))
     `((with (,tmp-var ,vector))
-      (for ,index (from 0 :to (1- (length ,tmp-var)) :by +1))       
+      (for ,index (from 0 :to (1- (length ,tmp-var)) :by +1))
       (for ,*iteration-variable* (being (aref ,tmp-var ,index))))))
 ```
 
-> Such a style is to be preferred, but there might be cases where
-> you\'ll need, or prefer, to use a lower-level API to generate the
-> appropriate clauses. Look at the symbols whose name starts with
-> **make-** (e.g. **make-iteration**) in the **doplus** package. Even if
-> you go to that route, you can still use the higher-level API where it
-> is most convenient, and only plug lower-level calls where strictly
-> necessary. Just for the sake of the example, the code above might be
-> rewritten as:
+Such a style is to be preferred, but there might be cases where
+you\'ll need, or prefer, to use a lower-level API to generate the
+appropriate clauses. Look at the symbols whose name starts with
+**make-** (e.g. **make-iteration**) in the **doplus** package. Even if
+you go to that route, you can still use the higher-level API where it
+is most convenient, and only plug lower-level calls where strictly
+necessary. Just for the sake of the example, the code above might be
+rewritten as:
 
 ```lisp
-(defclause in-vector (vector &key (index (gensym "INDEX")))   
-  "Loops across a vector."   
+(defclause in-vector (vector &key (index (gensym "INDEX")))
+  "Loops across a vector."
   (let ((tmp-var (gensym "VECTOR")))
-    `(,(make-binding :var ,tmp-var)       
-      ,(make-initialization :form `(setf ,tmp-var ,vector))       
-      (for ,index (from 0 :to (1- (length ,tmp-var)) :by +1))       
+    `(,(make-binding :var ,tmp-var)
+      ,(make-initialization :form `(setf ,tmp-var ,vector))
+      (for ,index (from 0 :to (1- (length ,tmp-var)) :by +1))
       (for ,*iteration-variable* (being (aref ,tmp-var ,index))))))
 ```
 
 -   **Termination tests**. As a general rule, don\'t use **until**,
-    **stop-when** or similar when writing custom iteration clauses.
+    **stop-when** or similar to implement custom iteration clauses.
     Instead, explicitly use initialization and step forms, or implicitly
     use them through pre and post conditions provided by
     **make-iteration** and **make-simple-iteration**. **until**,
