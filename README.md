@@ -7,7 +7,7 @@ doplus (written DO+) is an iteration macro for Common Lisp. I wrote it because:
 
 ## Overview and main features ##
 
-We can think of doplus as a higher-level DSL over CL:DO `[*]`. In spirit it's similar to iterate, but having implementation simplicity as a core goal, its syntax is necessarily a bit different to accomodate the lack of a code walker that can freely move pieces of code around. Also, doplus generally requires the user to be a bit more explicit than both LOOP and iterate.
+We can think of doplus as a higher-level DSL over CL:DO[*]. In spirit it's similar to iterate, but having implementation simplicity as a core goal, its syntax is necessarily a bit different to accomodate the lack of a code walker that can freely move pieces of code around. Also, doplus generally requires the user to be a bit more explicit than both LOOP and iterate.
 
 doplus, like iterate, is meant to be extensible by simply writing macros. By contrast, LOOP is not portably extensible, and on those implementations where it is, it's not trivial to extend it. Most macros that extend doplus can be written combining built-in operators and producing code in doplus syntax, just like a user might have written it. This makes many possible doplus extensions very readable.
 
@@ -15,7 +15,7 @@ doplus is fully understood by SLIME, since it uses regular macros and defines du
 
 doplus is, to my knowledge, the only advanced iteration construct in Lisp to support atomic initialization and stepping of iteration variables. Refer to the manual section [Initialization and stepping](MANUAL.md#Initialization_and_stepping) for more information.
 
-`[*]` doplus used to be actually written on top of `cl:do*`, but has been rewritten using lower-level constructs to have more control on the various steps of iteration.
+[*] doplus used to be actually written on top of `cl:do*`, but has been rewritten using lower-level constructs to have more control on the various steps of iteration.
 
 ## Getting Started ##
 
