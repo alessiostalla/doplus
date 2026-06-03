@@ -241,6 +241,13 @@
              (do+ (for (a b) (in #((1 2) (3 4))))
                   (collect (cons b a))))))
 
+(test test-in-stack
+  (is (equal '(1 2 3 3)
+	     (let ((stack '(1 2 3)))
+	       (do+ (for y (in-stack stack))
+		    (when (evenp y) (push (1+ y) stack))
+		    (collect y))))))
+
 (test test-package-iterator
   (is (equal 'absolutely-truly-the-symbol-with-the-longest-name-in-this-package-even-longer-than-symbols-generated-by-the-test-framework
              (do+ (for s (symbols-in :doplus-tests :internal))

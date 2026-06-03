@@ -23,13 +23,14 @@
   (:import-from :sequence #:make-sequence-iterator)
   (:export
    ;;User-level API
-   #:do+ #:for #:generating #:being #:in #:in-list #:in-vector #:across #:list-tails
+   #:do+ #:for #:generating #:being #:in #:in-list #:in-stack #:in-vector #:across #:list-tails
    #:hash-entries-of #:symbols-in #:from #:to
    #:finding #:with #:initially #:finally #:previous #:stop-when #:returning
    #:counting #:summing-to #:accumulating-to #:collecting-into
    #:summing-to-and-returning #:accumulating-to-and-returning #:collecting-into-and-returning
    #:maximizing #:minimizing #:optimizing
    #:options
+   #:until #:while
    ;;Body-local macros
    #:collect #:sum #:skip #:terminate #:update #:try-update
 

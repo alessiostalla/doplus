@@ -140,6 +140,14 @@
                               :precondition `(not (null ,rest))))
       (expand-with-simple-destructuring form env)))
 
+(defclause in-stack (&whole form stack &environment env)
+  "Pops successive values from a list, terminating the loop when there are no more values in it. IN-STACK must be used in combination with FOR, GENERATING and similar macros (those that bind *ITERATION-VARIABLE*)."
+  (if (symbolp *iteration-variable*)
+      `((while ,stack)
+	(for ,*iteration-variable* (being (first ,stack)))
+	(pop ,stack))
+      (expand-with-simple-destructuring form env)))
+
 (defclause list-tails
     (&whole form list &key (by '(function cdr)) &environment env)
   "Loops over the successive tails of a list, checking for the end of the list as if by ATOM. Can perform destructuring."
