@@ -259,7 +259,11 @@
   (is (equal '(2 4 8 16 32 64)
              (do+ (for x (being 2 :then (* x 2)))
                   (stop-when (> x 100))
-                  (collect x)))))
+                  (collect x))))
+  (is (equal '((0 . 1) (5 . 5) (10 . 25) (15 . 125))
+             (do+ (for (n o) (being (list 0 1) :then (list (+ n 5) (* o 5))))
+                  (stop-when (>= n 20))
+                  (collect (cons n o))))))
 
 (test test-multiple-accumulations
   (is (equal '(1 2 2 4)

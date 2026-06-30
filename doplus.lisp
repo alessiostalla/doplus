@@ -92,9 +92,11 @@
   "Same as FOR, but perhaps nicer to read when used in conjunction with macros like MAXIMIZING."
   `(for ,var ,condition))
 
-(defclause being (form &key (then form))
+(defclause being (&whole being-form form &key (then form) &environment env)
   "Assigns to the iteration variable a value computed by evaluating FORM on each iteration, including the first. Optionally, the variable can be updated evaluating a differen form (the value of the `then' parameter). Examples: (for x (being (random))), (for y (being 'quiet :then (if (> x 0.5) 'angry 'quiet)))."
-  (make-simple-iteration :init form :step then))
+  (if (symbolp *iteration-variable*)
+      (make-simple-iteration :init form :step then)
+      (expand-with-simple-destructuring being-form env)))
 
 (eval-when (:load-toplevel :compile-toplevel :execute)
   (defun ensure-list (obj)
@@ -141,7 +143,7 @@
       (expand-with-simple-destructuring form env)))
 
 (defclause in-stack (&whole form stack &environment env)
-  "Pops successive values from a list, terminating the loop when there are no more values in it. IN-STACK must be used in combination with FOR, GENERATING and similar macros (those that bind *ITERATION-VARIABLE*)."
+  "Pops successive values from a list, terminating the loop when there are no more values in it. IN-STACK must be used in combination with FOR, GENERATING and similar macros (those that bind *ITERATION-VARIABLE*). Note that, unlike most other iteration clauses, this one destructively modifies STACK."
   (if (symbolp *iteration-variable*)
       `((while ,stack)
 	(for ,*iteration-variable* (being (first ,stack)))
