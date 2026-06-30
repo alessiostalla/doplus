@@ -363,7 +363,7 @@ sequentially and atomically.
 
 -   sequentially means that each initialization/step form can see the
     result of assigning the previous variables to the values of their
-    respective initialization/step forms, like in do`*`, as opposed to
+    respective initialization/step forms, like in DO*, as opposed to
     do. The rationale behind things being as they are is that many
     higher-level iteration operators need more than one variable to
     perform their work. Iterate has [something to say about
@@ -425,18 +425,18 @@ useful to keep in mind a few tips and tricks.
 
 -   **Use defclause**. **defclause** is almost an alias to **defmacro**;
     but, as an extra, it records the name of the macro in a list (the
-    value of the variable **`*`clauses`*`**) that can be inspected by
+    value of the variable **\*clauses\***) that can be inspected by
     users and programs to discover known clauses.
 
 -   **Adding new clauses to for, generating** and similar: the only
     piece of \"API\" provided by **for** and macros that expand to
     **for** (such as **generating**, **accumulating** etc. as well as
     user-defined macros) is that **for**\'s body is macroexpanded in a
-    dynamic environment where the variable **`*`iteration-variable`*`**
+    dynamic environment where the variable **\*iteration-variable\***
     is bound to the first argument to **for**. Note that
-    **`*`iteration-variable`*`** can be a lambda list as well as a
+    **\*iteration-variable\*** can be a lambda list as well as a
     symbol; if our macro does not support destructuring, we should
-    nevertheless handle the case when **`*`iteration-variable`*`** is a
+    nevertheless handle the case when **\*iteration-variable\*** is a
     lambda list by signalling a meaningful error condition.
 
 -   **Preferred macro style**. Generally, macros can expand into a list

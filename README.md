@@ -13,7 +13,7 @@ doplus, like iterate, is meant to be extensible by simply writing macros. By con
 
 doplus is fully understood by SLIME, since it uses regular macros and defines dummy top-level macros for its body-local macrolets, to make symbol completion available for them as well.
 
-doplus is, to my knowledge, the only advanced iteration construct in Lisp to support atomic initialization and stepping of iteration variables. Refer to the manual section [Initialization and stepping](MANUAL.md#Initialization_and_stepping) for more information.
+doplus is, to my knowledge, the only advanced iteration construct in Lisp to support atomic initialization and stepping of iteration variables. Refer to the manual section [Initialization and stepping](MANUAL.md#Initialization-and-stepping) for more information.
 
 [*] doplus used to be actually written on top of `cl:do*`, but has been rewritten using lower-level constructs to have more control on the various steps of iteration.
 
