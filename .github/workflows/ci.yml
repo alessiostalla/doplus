@@ -13,8 +13,8 @@ jobs:
     strategy:
       # Each combination of lisp and os are tested
       matrix:
-        lisp: [sbcl-bin, ccl-bin]
-        os: [macOS-latest]
+        lisp: [sbcl-bin] # ccl doesn't support arm64 atm https://github.com/Clozure/ccl/issues/11
+        os: [macOS-latest, ubuntu-latest]
 
     steps:
       - name: Ubuntu specific settings
